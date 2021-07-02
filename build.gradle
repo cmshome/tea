@@ -1,0 +1,107 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.8.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+    id 'java'
+}
+
+group = 'com.lxk'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenLocal()
+    maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+    mavenCentral()
+}
+
+
+ext {
+    set('springCloudAlibabaVersion', "2.2.1.RELEASE")
+}
+
+configurations {
+    all*.exclude module: 'spring-boot-starter-logging'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
+    compile('org.springframework.boot:spring-boot-starter-log4j2')
+
+    compileOnly "org.springframework.boot:spring-boot-configuration-processor"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    compile group: 'com.alibaba', name: 'fastjson', version:'1.2.72'
+    compile group: 'com.google.guava', name: 'guava', version:'18.0'
+
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "com.alibaba.cloud:spring-cloud-alibaba-dependencies:${springCloudAlibabaVersion}"
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootJar {
+    baseName = 'tea'
+}
+
+clean.doLast {
+    file('tea').deleteDir()
+}
+
+task mixpack(dependsOn: ['bootJar']) {
+    File dir = new File('tea')
+    dir.deleteDir()
+    dir.mkdir()
+
+    doLast {
+        copy {
+            from 'build/libs/'
+            into 'tea/libs/'
+        }
+        copy {
+            from 'bin/'
+            into 'tea/bin/'
+        }
+        copy {
+            from 'src/main/resources/log4j2.xml'
+            into 'tea/conf/'
+        }
+        copy {
+            from 'src/main/resources/application.yml'
+            into 'tea/conf/'
+            rename { 'tea.yml' }
+        }
+        copy {
+            from 'src/main/resources/processors.json'
+            into 'tea/conf/'
+            rename { 'processors.json' }
+        }
+        copy {
+            from 'lib/'
+            into 'tea/lib/'
+        }
+        copy {
+            from 'src/main/resources/mybatis'
+            into 'tea/conf/mybatis'
+        }
+        file('tea/logs').mkdirs()
+    }
+}
+
+task zip(type: Zip, dependsOn: mixpack) {
+    from 'tea'
+    destinationDir file("${buildDir}")
+    baseName 'tea'
+    appendix 'jenkins'
+    version '1.0'
+    extension 'zip'
+    classifier 'version'
+}
