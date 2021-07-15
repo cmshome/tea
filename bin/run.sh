@@ -6,7 +6,7 @@ SCRIPTPATH=$(pwd -P)
 popd >/dev/null || exit
 
 SERVICENAME="tea"
-JARNAME="tea-0.0.1-SNAPSHOT.jar"
+JARNAME="tea-0.0.1-release.jar"
 JARFILE="${SCRIPTPATH}/../libs/${JARNAME}"
 LOG_PATH="${SCRIPTPATH}/../logs"
 PROPERTIES="${SCRIPTPATH}/../conf/${SERVICENAME}.yml"
@@ -15,7 +15,7 @@ start() {
   ps -ef | grep ${JARNAME} | grep -v grep
   if [[ $? -ne 0 ]]; then
     echo "start ${SERVICENAME}" $(date)
-    exec java -Xmx512m -Xms512m -Xmn256m -jar -Dspring.config.location=${PROPERTIES} -Dinstance="${SERVICENAME}" -Dlog.dir="${LOG_PATH}" "${JARFILE}" >/dev/null 2>&1 &
+    exec java -Xms512m -Xmx512m -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${LOG_PATH}/${SERVICENAME}-gc.log.$(date +%Y%m%d%H%M) -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=1 -XX:GCLogFileSize=64M -jar -Dspring.config.location=${PROPERTIES} -Dinstance="${SERVICENAME}" -Dlog.dir="${LOG_PATH}" "${JARFILE}" >/dev/null 2>&1 &
 
     port=$(grep " port:" "${PROPERTIES}" | cut -d ":" -f2 | sed 's/ *//g')
     for ((i = 1; i < 70; i++)); do

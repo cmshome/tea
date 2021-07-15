@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.lxk'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1-release'
 sourceCompatibility = '1.8'
 
 repositories {
@@ -53,55 +53,32 @@ bootJar {
 }
 
 clean.doLast {
-    file('tea').deleteDir()
+    file('package').deleteDir()
 }
 
 task mixpack(dependsOn: ['bootJar']) {
-    File dir = new File('tea')
+    File dir = new File('package')
     dir.deleteDir()
     dir.mkdir()
 
     doLast {
         copy {
             from 'build/libs/'
-            into 'tea/libs/'
+            into 'package/libs/'
         }
         copy {
             from 'bin/'
-            into 'tea/bin/'
+            into 'package/bin/'
         }
         copy {
             from 'src/main/resources/log4j2.xml'
-            into 'tea/conf/'
+            into 'package/conf/'
         }
         copy {
             from 'src/main/resources/application.yml'
-            into 'tea/conf/'
+            into 'package/conf/'
             rename { 'tea.yml' }
         }
-        copy {
-            from 'src/main/resources/processors.json'
-            into 'tea/conf/'
-            rename { 'processors.json' }
-        }
-        copy {
-            from 'lib/'
-            into 'tea/lib/'
-        }
-        copy {
-            from 'src/main/resources/mybatis'
-            into 'tea/conf/mybatis'
-        }
-        file('tea/logs').mkdirs()
+        file('package/logs').mkdirs()
     }
-}
-
-task zip(type: Zip, dependsOn: mixpack) {
-    from 'tea'
-    destinationDir file("${buildDir}")
-    baseName 'tea'
-    appendix 'jenkins'
-    version '1.0'
-    extension 'zip'
-    classifier 'version'
 }
