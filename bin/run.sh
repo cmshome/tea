@@ -15,7 +15,7 @@ start() {
   ps -ef | grep ${JARNAME} | grep -v grep
   if [[ $? -ne 0 ]]; then
     echo "start ${SERVICENAME}" $(date)
-    exec java -Xms512m -Xmx512m -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:${LOG_PATH}/${SERVICENAME}-gc.log.$(date +%Y%m%d%H%M) -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=1 -XX:GCLogFileSize=64M -jar -Dspring.config.location=${PROPERTIES} -Dinstance="${SERVICENAME}" -Dlog.dir="${LOG_PATH}" "${JARFILE}" >/dev/null 2>&1 &
+    exec java -Xms512m -Xmx512m -XX:+UseG1GC -jar -Dspring.config.location=${PROPERTIES} -Dinstance="${SERVICENAME}" -Dlog.dir="${LOG_PATH}" "${JARFILE}" >/dev/null 2>&1 &
 
     port=$(grep " port:" "${PROPERTIES}" | cut -d ":" -f2 | sed 's/ *//g')
     for ((i = 1; i < 70; i++)); do
